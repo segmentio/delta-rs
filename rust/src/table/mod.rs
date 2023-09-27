@@ -21,13 +21,13 @@ use uuid::Uuid;
 
 use self::builder::DeltaTableConfig;
 use self::state::DeltaTableState;
+use crate::checkpoints::create_checkpoint_for;
 use crate::errors::DeltaTableError;
 use crate::partitions::PartitionFilter;
 use crate::protocol::{self, find_latest_check_point_for_version, get_last_checkpoint, Action};
 use crate::protocol::{Add, ProtocolError, Stats};
 use crate::schema::*;
 use crate::storage::{commit_uri_from_version, ObjectStoreRef};
-use crate::checkpoints::create_checkpoint_for;
 
 pub mod builder;
 pub mod config;
@@ -771,14 +771,17 @@ impl DeltaTable {
     }
 
     /// Attempts to create a checkpoint if versions since last is None or is met, returns true if created, false if not
-    pub async fn create_check_point(&mut self, versions_since_last: Option<i64>) -> Result<bool, ProtocolError> {
+    pub async fn create_check_point(
+        &mut self,
+        versions_since_last: Option<i64>,
+    ) -> Result<bool, ProtocolError> {
         let last_check_point_version = match self.last_check_point {
             Some(cp) => cp.version,
-            None => 0
+            None => 0,
         };
 
         match versions_since_last {
-            None => {},
+            None => {}
             Some(v) => {
                 if (self.version() - last_check_point_version) < v {
                     return Ok(false);
@@ -786,7 +789,9 @@ impl DeltaTable {
             }
         }
 
-        self.last_check_point = Some(create_checkpoint_for(self.version(), self.get_state(), self.storage.as_ref()).await?);
+        self.last_check_point = Some(
+            create_checkpoint_for(self.version(), self.get_state(), self.storage.as_ref()).await?,
+        );
 
         Ok(true)
     }
