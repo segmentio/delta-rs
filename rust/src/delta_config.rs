@@ -360,14 +360,14 @@ fn parse_interval(value: &str) -> Result<Duration, DeltaConfigError> {
     let number = number as u64;
 
     let duration = match it.next().ok_or_else(not_an_interval)? {
-        "nanosecond" => Duration::from_nanos(number),
-        "microsecond" => Duration::from_micros(number),
-        "millisecond" => Duration::from_millis(number),
-        "second" => Duration::from_secs(number),
-        "minute" => Duration::from_secs(number * SECONDS_PER_MINUTE),
-        "hour" => Duration::from_secs(number * SECONDS_PER_HOUR),
-        "day" => Duration::from_secs(number * SECONDS_PER_DAY),
-        "week" => Duration::from_secs(number * SECONDS_PER_WEEK),
+        "nanosecond" | "nanoseconds" => Duration::from_nanos(number),
+        "microsecond" | "microseconds" => Duration::from_micros(number),
+        "millisecond" | "milliseconds" => Duration::from_millis(number),
+        "second" | "seconds" => Duration::from_secs(number),
+        "minute" | "minutes" => Duration::from_secs(number * SECONDS_PER_MINUTE),
+        "hour" | "hours" => Duration::from_secs(number * SECONDS_PER_HOUR),
+        "day" | "days" => Duration::from_secs(number * SECONDS_PER_DAY),
+        "week" | "weeks" => Duration::from_secs(number * SECONDS_PER_WEEK),
         unit => {
             return Err(DeltaConfigError::Validation(format!(
                 "Unknown unit '{unit}'"
