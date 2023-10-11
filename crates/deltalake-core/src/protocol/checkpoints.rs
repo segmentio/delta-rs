@@ -151,7 +151,7 @@ pub async fn cleanup_expired_logs_for(
 ) -> Result<usize, ProtocolError> {
     lazy_static! {
         static ref DELTA_LOG_REGEX: Regex =
-            Regex::new(r"_delta_log/(\d{20})\.(json|checkpoint).*$").unwrap();
+            Regex::new(r"_delta_log/(\d{20})\.(json|crc|checkpoint).*$").unwrap();
     }
 
     // Feed a stream of candidate deletion files directly into the delete_stream
