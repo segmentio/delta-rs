@@ -61,11 +61,11 @@ async fn main() -> Result<(), DeltaTableError> {
 
     writer.write(batch).await?;
 
-    let adds = writer
+    let (version, _adds) = writer
         .flush_and_commit(&mut table)
         .await
         .expect("Failed to flush write");
-    info!("{} adds written", adds);
+    info!("{} adds written", version);
 
     Ok(())
 }

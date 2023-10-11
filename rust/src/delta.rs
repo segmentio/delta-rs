@@ -48,6 +48,18 @@ pub struct CheckPoint {
     pub(crate) num_of_add_files: Option<i64>,
 }
 
+impl CheckPoint {
+    /// Table version at checkpoint
+    pub fn version(&self) -> i64 {
+        self.version
+    }
+
+    /// Table size in bytes at checkpoint
+    pub fn size_in_bytes(&self) -> Option<i64> {
+        self.size_in_bytes
+    }
+}
+
 /// Builder for CheckPoint
 pub struct CheckPointBuilder {
     /// Delta table version
@@ -353,6 +365,11 @@ impl DeltaTable {
     /// The URI of the underlying data
     pub fn table_uri(&self) -> String {
         self.storage.root_uri()
+    }
+
+    /// The lastest checkpoint for the table
+    pub fn last_checkpoint(&self) -> Option<CheckPoint> {
+        self.last_check_point
     }
 
     /// Return the list of paths of given checkpoint.
