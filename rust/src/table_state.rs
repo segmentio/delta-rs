@@ -40,11 +40,15 @@ pub struct DeltaTableState {
     min_writer_version: i32,
     // table metadata corresponding to current version
     current_metadata: Option<DeltaTableMetaData>,
+    // frequency for creating checkpoints
+    checkpoint_interval: i32,
     // retention period for tombstones in milli-seconds
     tombstone_retention_millis: i64,
     // retention period for log entries in milli-seconds
     log_retention_millis: i64,
     enable_expired_log_cleanup: bool,
+    // target file size for optimization
+    target_file_size: i64,
 }
 
 impl DeltaTableState {
@@ -166,6 +170,11 @@ impl DeltaTableState {
         &self.commit_infos
     }
 
+    /// Frequency for creating checkpoints.
+    pub fn checkpoint_interval(&self) -> i32 {
+        self.checkpoint_interval
+    }
+
     /// Retention of tombstone in milliseconds.
     pub fn tombstone_retention_millis(&self) -> i64 {
         self.tombstone_retention_millis
@@ -179,6 +188,11 @@ impl DeltaTableState {
     /// Whether to clean up expired checkpoints and delta logs.
     pub fn enable_expired_log_cleanup(&self) -> bool {
         self.enable_expired_log_cleanup
+    }
+
+    /// Target file size for optimizations.
+    pub fn target_file_size(&self) -> i64 {
+        self.target_file_size
     }
 
     /// Full list of tombstones (remove actions) representing files removed from table state).
@@ -288,9 +302,11 @@ impl DeltaTableState {
         }
 
         if new_state.current_metadata.is_some() {
+            self.checkpoint_interval = new_state.checkpoint_interval;
             self.tombstone_retention_millis = new_state.tombstone_retention_millis;
             self.log_retention_millis = new_state.log_retention_millis;
             self.enable_expired_log_cleanup = new_state.enable_expired_log_cleanup;
+            self.target_file_size = new_state.target_file_size;
             self.current_metadata = new_state.current_metadata.take();
         }
 
@@ -341,11 +357,13 @@ impl DeltaTableState {
             action::Action::metaData(v) => {
                 let md = DeltaTableMetaData::try_from(v)?;
                 let table_config = TableConfig(&md.configuration);
+                self.checkpoint_interval = table_config.checkpoint_interval();
                 self.tombstone_retention_millis =
                     table_config.deleted_file_retention_duration().as_millis() as i64;
                 self.log_retention_millis =
                     table_config.log_retention_duration().as_millis() as i64;
                 self.enable_expired_log_cleanup = table_config.enable_expired_log_cleanup();
+                self.target_file_size = table_config.target_file_size();
                 self.current_metadata = Some(md);
             }
             action::Action::txn(v) => {
@@ -416,9 +434,11 @@ mod tests {
             min_reader_version: 0,
             min_writer_version: 0,
             current_metadata: None,
+            checkpoint_interval: 0,
             tombstone_retention_millis: 0,
             log_retention_millis: 0,
             enable_expired_log_cleanup: false,
+            target_file_size: 0,
         };
         let bytes = serde_json::to_vec(&expected).unwrap();
         let actual: DeltaTableState = serde_json::from_slice(&bytes).unwrap();
@@ -440,9 +460,11 @@ mod tests {
             min_reader_version: 1,
             min_writer_version: 1,
             app_transaction_version,
+            checkpoint_interval: 0,
             tombstone_retention_millis: 0,
             log_retention_millis: 0,
             enable_expired_log_cleanup: true,
+            target_file_size: 0,
         };
 
         let txn_action = action::Action::txn(action::Txn {
