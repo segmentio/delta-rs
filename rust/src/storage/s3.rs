@@ -15,6 +15,7 @@ use rusoto_credential::AutoRefreshingProvider;
 use rusoto_sts::WebIdentityProvider;
 use serde::Deserialize;
 use serde::Serialize;
+use url::Url;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::Range;
@@ -536,6 +537,23 @@ fn try_create_lock_client(options: &S3StorageOptions) -> Result<Option<S3LockCli
             }))
         }
         _ => Ok(None),
+    }
+}
+
+/// attempts to resolve the bucket region, returns empty if unable
+pub async fn try_resolve_bucket_region(s3_uri: impl AsRef<str>) -> String {
+    let url = match Url::parse(s3_uri.as_ref()) {
+        Err(_) => return "".to_string(),
+        Ok(url) => url,
+    };
+
+    match object_store::aws::resolve_bucket_region(
+        url.host_str().unwrap(),
+        &object_store::ClientOptions::new(),
+    )
+    .await {
+        Err(_) => return "".to_string(),
+        Ok(v) => return v,
     }
 }
 
