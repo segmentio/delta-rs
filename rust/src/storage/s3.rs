@@ -21,6 +21,7 @@ use std::ops::Range;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWrite;
+use url::Url;
 
 const STORE_NAME: &str = "DeltaS3ObjectStore";
 
@@ -536,6 +537,24 @@ fn try_create_lock_client(options: &S3StorageOptions) -> Result<Option<S3LockCli
             }))
         }
         _ => Ok(None),
+    }
+}
+
+/// attempts to resolve the bucket region, returns empty if unable
+pub async fn try_resolve_bucket_region(s3_uri: impl AsRef<str>) -> String {
+    let url = match Url::parse(s3_uri.as_ref()) {
+        Err(_) => return "".to_string(),
+        Ok(url) => url,
+    };
+
+    match object_store::aws::resolve_bucket_region(
+        url.host_str().unwrap(),
+        &object_store::ClientOptions::new(),
+    )
+    .await
+    {
+        Err(_) => return "".to_string(),
+        Ok(v) => return v,
     }
 }
 
