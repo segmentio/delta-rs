@@ -15,13 +15,13 @@ use rusoto_credential::AutoRefreshingProvider;
 use rusoto_sts::WebIdentityProvider;
 use serde::Deserialize;
 use serde::Serialize;
-use url::Url;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::Range;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWrite;
+use url::Url;
 
 const STORE_NAME: &str = "DeltaS3ObjectStore";
 
@@ -551,7 +551,8 @@ pub async fn try_resolve_bucket_region(s3_uri: impl AsRef<str>) -> String {
         url.host_str().unwrap(),
         &object_store::ClientOptions::new(),
     )
-    .await {
+    .await
+    {
         Err(_) => return "".to_string(),
         Ok(v) => return v,
     }
