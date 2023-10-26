@@ -10,8 +10,8 @@
 use self::create::CreateBuilder;
 use self::filesystem_check::FileSystemCheckBuilder;
 use self::vacuum::VacuumBuilder;
-use crate::builder::DeltaTableBuilder;
 use crate::errors::{DeltaResult, DeltaTableError};
+use crate::table::builder::DeltaTableBuilder;
 use crate::DeltaTable;
 
 pub mod create;
@@ -202,8 +202,8 @@ impl AsRef<DeltaTable> for DeltaOps {
 mod datafusion_utils {
     use std::sync::Arc;
 
-    use arrow_array::RecordBatch;
     use arrow_schema::SchemaRef;
+    use datafusion::arrow::record_batch::RecordBatch;
     use datafusion::error::Result as DataFusionResult;
     use datafusion::physical_plan::DisplayAs;
     use datafusion::physical_plan::{
@@ -213,7 +213,7 @@ mod datafusion_utils {
     use datafusion_expr::Expr;
     use futures::{Stream, StreamExt};
 
-    use crate::{table_state::DeltaTableState, DeltaResult};
+    use crate::{table::state::DeltaTableState, DeltaResult};
 
     /// Used to represent user input of either a Datafusion expression or string expression
     pub enum Expression {
