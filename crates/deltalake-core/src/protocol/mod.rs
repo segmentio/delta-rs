@@ -111,10 +111,11 @@ pub enum ProtocolError {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum ColumnValueStat {
-    /// Composite HashMap representation of statistics.
-    Column(HashMap<String, ColumnValueStat>),
+    // Order matters here!  Since the serde enum strategy is "untagged" it will attempt to match in order.
     /// Json representation of statistics.
     Value(Value),
+    /// Composite HashMap representation of statistics.
+    Column(HashMap<String, ColumnValueStat>),
 }
 
 impl ColumnValueStat {
@@ -139,10 +140,11 @@ impl ColumnValueStat {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum ColumnCountStat {
-    /// Composite HashMap representation of statistics.
-    Column(HashMap<String, ColumnCountStat>),
+    // Order matters here!  Since the serde enum strategy is "untagged" it will attempt to match in order.
     /// Json representation of statistics.
     Value(i64),
+    /// Composite HashMap representation of statistics.
+    Column(HashMap<String, ColumnCountStat>),
 }
 
 impl ColumnCountStat {

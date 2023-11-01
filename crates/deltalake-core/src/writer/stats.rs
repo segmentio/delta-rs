@@ -280,7 +280,7 @@ impl From<StatsScalar> for serde_json::Value {
             StatsScalar::Timestamp(v) => {
                 serde_json::Value::from(v.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string())
             }
-            StatsScalar::Decimal(v) => serde_json::Value::from(v),
+            StatsScalar::Decimal(v) => serde_json::from_str(v.to_string().as_str()).unwrap(),
             StatsScalar::String(v) => serde_json::Value::from(v),
             StatsScalar::Bytes(v) => {
                 let escaped_bytes = v

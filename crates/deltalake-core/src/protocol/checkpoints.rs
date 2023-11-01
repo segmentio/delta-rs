@@ -280,7 +280,9 @@ fn parquet_bytes_from_state(
         .with_batch_size(CHECKPOINT_RECORD_BATCH_SIZE)
         .build_decoder()?;
     let jsons = jsons.collect::<Result<Vec<serde_json::Value>, _>>()?;
-    decoder.serialize(&jsons)?;
+    let sanitized = crate::writer::utils::sanitize_jsons(&jsons);
+    // decoder.serialize(&jsons)?;
+    decoder.serialize(&sanitized)?;
 
     while let Some(batch) = decoder.flush()? {
         writer.write(&batch)?;

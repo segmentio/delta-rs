@@ -316,9 +316,7 @@ fn primitive_parquet_field_to_json_value(field: &Field) -> Result<serde_json::Va
         Field::Double(value) => Ok(json!(value)),
         Field::Str(value) => Ok(json!(value)),
         Field::Decimal(decimal) => match BigInt::from_signed_bytes_be(decimal.data()).to_f64() {
-            Some(int) => Ok(json!(
-                int / (10_i64.pow((decimal.scale()).try_into().unwrap()) as f64)
-            )),
+            Some(int) => Ok(serde_json::from_str((int / (10_i64.pow((decimal.scale()).try_into().unwrap()) as f64)).to_string().as_str()).unwrap()),
             _ => Err("Invalid type for min/max values."),
         },
         Field::TimestampMicros(timestamp) => Ok(serde_json::Value::String(
