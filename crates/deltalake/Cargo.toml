@@ -18,6 +18,7 @@ deltalake-core = { path = "../deltalake-core" }
 [features]
 # All of these features are just reflected into the core crate until that
 # functionality is broken apart
+arbitrary_precision = ["deltalake-core/arbitrary_precision"]
 azure = ["deltalake-core/azure"]
 arrow = ["deltalake-core/arrow"]
 default = ["arrow", "deltalake-core/parquet"]
