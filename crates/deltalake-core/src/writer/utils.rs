@@ -151,61 +151,11 @@ pub fn record_batch_from_message(
     arrow_schema: Arc<ArrowSchema>,
     json: &[Value],
 ) -> DeltaResult<RecordBatch> {
-    let sanitized = sanitize_jsons(json);
     let mut decoder = ReaderBuilder::new(arrow_schema).build_decoder().unwrap();
-    // decoder.serialize(&json)?;
-    decoder.serialize(&sanitized)?;
+    decoder.serialize(json)?;
     decoder
         .flush()?
         .ok_or_else(|| DeltaWriterError::EmptyRecordBatch.into())
-}
-
-pub(crate) fn sanitize_jsons(jsons: &[Value]) -> Vec<Value> {
-    let mut sanitized: Vec<Value> = Vec::new();
-
-    for json in jsons {
-        sanitized.push(sanitize_json(json));
-    }
-
-    return sanitized;
-}
-
-fn sanitize_json(json: &Value) -> Value {
-    match json {
-        Value::Number(n) => {
-            #[cfg(feature = "arbitrary_precision")]
-            {
-                return Value::String(n.to_string());
-            }
-            #[cfg(not(feature = "arbitrary_precision"))]
-            {
-                if n.is_f64() {
-                    return Value::String(n.as_f64().unwrap().to_string());
-                }
-    
-                return Value::Number(n.clone());
-            }
-        },
-        Value::Array(arr) => {
-            let mut new_arr: Vec<Value> = Vec::new();
-
-            for v in arr {
-                new_arr.push(sanitize_json(v));
-            }
-
-            return Value::Array(new_arr);
-        },
-        Value::Object(obj) => {
-            let mut new_map: serde_json::Map<String, Value> = serde_json::Map::new();
-            
-            for (k, v) in obj {
-                new_map.insert(k.clone(), sanitize_json(v));
-            }
-
-            return Value::Object(new_map);
-        },
-        _ => return json.clone(),
-    }
 }
 
 // very naive implementation for plucking the partition value from the first element of a column array.
