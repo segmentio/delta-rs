@@ -44,7 +44,7 @@ rust_decimal = { workspace = true }
 
 # serde
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["arbitrary_precision"] }
 
 # "stdlib"
 bytes = { workspace = true }
