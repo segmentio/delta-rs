@@ -1,9 +1,8 @@
 use std::{collections::HashMap, str::FromStr};
 
 use chrono::{SecondsFormat, TimeZone, Utc};
-use num_bigint::BigInt;
-use num_traits::cast::ToPrimitive;
 use parquet::record::{Field, ListAccessor, MapAccessor, RowAccessor};
+use rust_decimal::Decimal;
 use serde_json::json;
 
 use crate::protocol::{
@@ -315,10 +314,27 @@ fn primitive_parquet_field_to_json_value(field: &Field) -> Result<serde_json::Va
         Field::Float(value) => Ok(json!(value)),
         Field::Double(value) => Ok(json!(value)),
         Field::Str(value) => Ok(json!(value)),
-        Field::Decimal(decimal) => match BigInt::from_signed_bytes_be(decimal.data()).to_f64() {
-            Some(int) => Ok(serde_json::from_str((int / (10_i64.pow((decimal.scale()).try_into().unwrap()) as f64)).to_string().as_str()).unwrap()),
-            _ => Err("Invalid type for min/max values."),
-        },
+        Field::Decimal(decimal) => {
+            let val = decimal.data();
+            let val = if val.len() <= 4 {
+                let mut bytes = [0; 4];
+                bytes[..val.len()].copy_from_slice(val);
+                i32::from_be_bytes(bytes) as i128
+            } else if val.len() <= 8 {
+                let mut bytes = [0; 8];
+                bytes[..val.len()].copy_from_slice(val);
+                i64::from_be_bytes(bytes) as i128
+            } else if val.len() <= 16 {
+                let mut bytes = [0; 16];
+                bytes[..val.len()].copy_from_slice(val);
+                i128::from_be_bytes(bytes)
+            } else {
+                return Err("Invalid type for min/max values.");
+            };
+            
+            let val = Decimal::from_i128_with_scale(val, decimal.scale() as u32);
+            Ok(serde_json::from_str(&val.to_string()).unwrap())
+        }
         Field::TimestampMicros(timestamp) => Ok(serde_json::Value::String(
             convert_timestamp_micros_to_string(*timestamp)?,
         )),
