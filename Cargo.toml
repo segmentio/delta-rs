@@ -37,7 +37,7 @@ datafusion-proto = { version = "32" }
 datafusion-sql = { version = "32" }
 datafusion-physical-expr = { version = "32" }
 
-rust_decimal = "1"
+rust_decimal = { version = "1" }
 
 # serde
 serde = { version = "1", features = ["derive"] }
