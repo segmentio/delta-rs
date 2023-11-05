@@ -130,7 +130,6 @@ utime = "0.3"
 hyper = { version = "0.14", features = ["server"] }
 
 [features]
-arbitrary_precision = ["serde_json/arbitrary_precision"]
 azure = ["object_store/azure"]
 arrow = [
     "dep:arrow",
