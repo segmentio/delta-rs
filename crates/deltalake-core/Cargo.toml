@@ -40,9 +40,11 @@ datafusion-proto = { workspace = true, optional = true }
 datafusion-sql = { workspace = true, optional = true }
 datafusion-physical-expr = { workspace = true, optional = true }
 
+rust_decimal = { workspace = true }
+
 # serde
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["arbitrary_precision"] }
 
 # "stdlib"
 bytes = { workspace = true }

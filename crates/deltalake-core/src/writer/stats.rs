@@ -9,6 +9,7 @@ use parquet::{
     file::{metadata::RowGroupMetaData, statistics::Statistics},
     format::TimeUnit,
 };
+use rust_decimal::Decimal;
 
 use super::*;
 use crate::kernel::Add;
@@ -123,8 +124,7 @@ enum StatsScalar {
     Float64(f64),
     Date(chrono::NaiveDate),
     Timestamp(chrono::NaiveDateTime),
-    // We are serializing to f64 later and the ordering should be the same
-    Decimal(f64),
+    Decimal(Decimal),
     String(String),
     Bytes(Vec<u8>),
     Uuid(uuid::Uuid),
@@ -155,8 +155,7 @@ impl StatsScalar {
                 Ok(Self::Date(date))
             }
             (Statistics::Int32(v), Some(LogicalType::Decimal { scale, .. })) => {
-                let val = get_stat!(v) as f64 / 10.0_f64.powi(*scale);
-                // Spark serializes these as numbers
+                let val = Decimal::new(get_stat!(v) as i64, *scale as u32);
                 Ok(Self::Decimal(val))
             }
             (Statistics::Int32(v), _) => Ok(Self::Int32(get_stat!(v))),
@@ -182,8 +181,7 @@ impl StatsScalar {
                 Ok(Self::Timestamp(timestamp))
             }
             (Statistics::Int64(v), Some(LogicalType::Decimal { scale, .. })) => {
-                let val = get_stat!(v) as f64 / 10.0_f64.powi(*scale);
-                // Spark serializes these as numbers
+                let val = Decimal::new(get_stat!(v), *scale as u32);
                 Ok(Self::Decimal(val))
             }
             (Statistics::Int64(v), _) => Ok(Self::Int64(get_stat!(v))),
@@ -221,15 +219,15 @@ impl StatsScalar {
                 let val = if val.len() <= 4 {
                     let mut bytes = [0; 4];
                     bytes[..val.len()].copy_from_slice(val);
-                    i32::from_be_bytes(bytes) as f64
+                    i32::from_be_bytes(bytes) as i128
                 } else if val.len() <= 8 {
                     let mut bytes = [0; 8];
                     bytes[..val.len()].copy_from_slice(val);
-                    i64::from_be_bytes(bytes) as f64
+                    i64::from_be_bytes(bytes) as i128
                 } else if val.len() <= 16 {
                     let mut bytes = [0; 16];
                     bytes[..val.len()].copy_from_slice(val);
-                    i128::from_be_bytes(bytes) as f64
+                    i128::from_be_bytes(bytes)
                 } else {
                     return Err(DeltaWriterError::StatsParsingFailed {
                         debug_value: format!("{val:?}"),
@@ -240,7 +238,7 @@ impl StatsScalar {
                     });
                 };
 
-                let val = val / 10.0_f64.powi(*scale);
+                let val = Decimal::from_i128_with_scale(val, *scale as u32);
                 Ok(Self::Decimal(val))
             }
             (Statistics::FixedLenByteArray(v), Some(LogicalType::Uuid)) => {
@@ -283,7 +281,7 @@ impl From<StatsScalar> for serde_json::Value {
             StatsScalar::Timestamp(v) => {
                 serde_json::Value::from(v.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string())
             }
-            StatsScalar::Decimal(v) => serde_json::Value::from(v),
+            StatsScalar::Decimal(v) => serde_json::from_str(&v.to_string()).unwrap(),
             StatsScalar::String(v) => serde_json::Value::from(v),
             StatsScalar::Bytes(v) => {
                 let escaped_bytes = v

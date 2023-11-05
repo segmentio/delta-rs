@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::io::BufReader;
 use std::iter::Iterator;
 
 use arrow::json::ReaderBuilder;
@@ -266,11 +267,23 @@ fn parquet_bytes_from_state(
 
         Action::Remove(r)
     }))
-    .map(|a| serde_json::to_value(a).map_err(ProtocolError::from))
+    .map(|a| serde_json::to_vec(&a).map_err(ProtocolError::from))
     // adds
     .chain(state.files().iter().map(|f| {
         checkpoint_add_from_state(f, partition_col_data_types.as_slice(), &stats_conversions)
+            .and_then(|v| serde_json::to_vec(&v).map_err(ProtocolError::from))
     }));
+
+    let mut joined_jsons = Vec::<u8>::new();
+    for json_result in jsons {
+        match json_result {
+            Err(error) => return Err(error),
+            Ok(json) => {
+                joined_jsons.extend(json.into_iter());
+                joined_jsons.push(b'\n');
+            }
+        }
+    }
 
     // Create the arrow schema that represents the Checkpoint parquet file.
     let arrow_schema = delta_log_schema_for_table(
@@ -283,20 +296,25 @@ fn parquet_bytes_from_state(
     // Write the Checkpoint parquet file.
     let mut bytes = vec![];
     let mut writer = ArrowWriter::try_new(&mut bytes, arrow_schema.clone(), None)?;
-    let mut decoder = ReaderBuilder::new(arrow_schema)
+    let mut reader = ReaderBuilder::new(arrow_schema)
         .with_batch_size(CHECKPOINT_RECORD_BATCH_SIZE)
-        .build_decoder()?;
-    let jsons = jsons.collect::<Result<Vec<serde_json::Value>, _>>()?;
-    decoder.serialize(&jsons)?;
+        .build(BufReader::new(joined_jsons.as_slice()))?;
 
-    while let Some(batch) = decoder.flush()? {
-        writer.write(&batch)?;
+    let mut cp_size: usize = 0;
+    while let Some(batch_result) = reader.next() {
+        match batch_result {
+            Err(error) => return Err(ProtocolError::from(error)),
+            Ok(batch) => {
+                cp_size += batch.num_rows();
+                writer.write(&batch)?
+            }
+        }
     }
 
     let _ = writer.close()?;
     debug!("Finished writing checkpoint parquet buffer.");
 
-    let checkpoint = CheckPointBuilder::new(state.version(), jsons.len() as i64)
+    let checkpoint = CheckPointBuilder::new(state.version(), cp_size as i64)
         .with_size_in_bytes(bytes.len() as i64)
         .build();
     Ok((checkpoint, bytes::Bytes::from(bytes)))
