@@ -11,8 +11,9 @@ use arrow::compute::cast;
 use arrow::compute::kernels::cast_utils::Parser;
 use arrow_array::types::{Date32Type, TimestampMicrosecondType};
 use arrow_array::{
-    Array, ArrayRef, BinaryArray, BooleanArray, Date32Array, Float64Array, Int64Array, NullArray,
-    StringArray, StructArray, TimestampMicrosecondArray, TimestampMillisecondArray, Decimal128Array,
+    Array, ArrayRef, BinaryArray, BooleanArray, Date32Array, Decimal128Array, Float64Array,
+    Int64Array, NullArray, StringArray, StructArray, TimestampMicrosecondArray,
+    TimestampMillisecondArray,
 };
 use arrow_schema::{DataType, Field, Fields, TimeUnit};
 use itertools::Itertools;
@@ -703,7 +704,9 @@ fn json_value_to_array_general<'a>(
         DataType::Decimal128(_, _) => {
             let dec_array: ArrayRef = Arc::new(Decimal128Array::from(
                 values
-                    .map(|value| value.and_then(|value| Some(i128::from_str(&value.to_string()).unwrap())))
+                    .map(|value| {
+                        value.and_then(|value| Some(i128::from_str(&value.to_string()).unwrap()))
+                    })
                     .collect_vec(),
             ));
             Ok(arrow::compute::cast(&dec_array, datatype)?)

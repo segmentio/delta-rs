@@ -331,7 +331,7 @@ fn primitive_parquet_field_to_json_value(field: &Field) -> Result<serde_json::Va
             } else {
                 return Err("Invalid type for min/max values.");
             };
-            
+
             let val = Decimal::from_i128_with_scale(val, decimal.scale() as u32);
             Ok(serde_json::from_str(&val.to_string()).unwrap())
         }

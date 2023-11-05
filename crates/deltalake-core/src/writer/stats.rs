@@ -234,7 +234,7 @@ impl StatsScalar {
                         }),
                     });
                 };
-                
+
                 let val = Decimal::from_i128_with_scale(val, *scale as u32);
                 Ok(Self::Decimal(val))
             }
