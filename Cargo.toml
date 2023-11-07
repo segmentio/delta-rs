@@ -56,3 +56,14 @@ async-trait = { version = "0.1" }
 futures = { version = "0.3" }
 tokio = { version = "1" }
 num_cpus = { version = "1" }
+
+[patch.crates-io]
+arrow = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-array = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-buffer = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-cast = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-ord = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-row = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-schema = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow-select = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+parquet = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }

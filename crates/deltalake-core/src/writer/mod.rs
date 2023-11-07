@@ -144,7 +144,7 @@ pub trait DeltaWriter<T> {
         } else {
             None
         };
-        let actions = adds.iter().map(|add| Action::add(add.clone())).collect();
+        let actions = adds.iter().map(|add| Action::Add(add.clone())).collect();
         let operation = DeltaOperation::Write {
             mode: SaveMode::Append,
             partition_by,
