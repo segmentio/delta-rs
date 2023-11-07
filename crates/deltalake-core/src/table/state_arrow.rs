@@ -4,17 +4,17 @@
 
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::str::FromStr;
 use std::sync::Arc;
 
 use arrow::compute::cast;
 use arrow::compute::kernels::cast_utils::Parser;
-use arrow_array::types::{Date32Type, TimestampMicrosecondType};
+use arrow_array::types::{Date32Type, TimestampMicrosecondType, Decimal128Type};
 use arrow_array::{
     Array, ArrayRef, BinaryArray, BooleanArray, Date32Array, Decimal128Array, Float64Array,
     Int64Array, NullArray, StringArray, StructArray, TimestampMicrosecondArray,
     TimestampMillisecondArray,
 };
+use arrow_cast::parse::parse_decimal;
 use arrow_schema::{DataType, Field, Fields, TimeUnit};
 use itertools::Itertools;
 
@@ -700,11 +700,16 @@ fn json_value_to_array_general<'a>(
             ));
             Ok(arrow::compute::cast(&f64_arr, datatype)?)
         }
-        DataType::Decimal128(_, _) => {
+        DataType::Decimal128(p, s) => {
             let dec_array: ArrayRef = Arc::new(Decimal128Array::from(
                 values
                     .map(|value| {
-                        value.and_then(|value| Some(i128::from_str(&value.to_string()).unwrap()))
+                        value.and_then(|value| {
+                            match parse_decimal::<Decimal128Type>(&value.to_string(), *p, *s) {
+                                Ok(v) => Some(v),
+                                Err(_) => None,
+                            }
+                        })
                     })
                     .collect_vec(),
             ));
