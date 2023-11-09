@@ -40,7 +40,7 @@ datafusion-proto = { workspace = true, optional = true }
 datafusion-sql = { workspace = true, optional = true }
 datafusion-physical-expr = { workspace = true, optional = true }
 
-rust_decimal = { workspace = true }
+bigdecimal = { workspace = true }
 
 # serde
 serde = { workspace = true, features = ["derive"] }

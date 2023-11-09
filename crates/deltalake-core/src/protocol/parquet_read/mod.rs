@@ -1,8 +1,8 @@
 use std::{collections::HashMap, str::FromStr};
 
+use bigdecimal::BigDecimal;
 use chrono::{SecondsFormat, TimeZone, Utc};
 use parquet::record::{Field, ListAccessor, MapAccessor, RowAccessor};
-use rust_decimal::Decimal;
 use serde_json::json;
 
 use crate::kernel::{
@@ -346,7 +346,7 @@ fn primitive_parquet_field_to_json_value(field: &Field) -> Result<serde_json::Va
                 return Err("Invalid type for min/max values.");
             };
 
-            let val = Decimal::from_i128_with_scale(val, decimal.scale() as u32);
+            let val = BigDecimal::new(val.into(), decimal.scale().into()).normalized();
             Ok(serde_json::from_str(&val.to_string()).unwrap())
         }
         Field::TimestampMicros(timestamp) => Ok(serde_json::Value::String(

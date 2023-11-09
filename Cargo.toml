@@ -37,7 +37,7 @@ datafusion-proto = { version = "32" }
 datafusion-sql = { version = "32" }
 datafusion-physical-expr = { version = "32" }
 
-rust_decimal = { version = "1" }
+bigdecimal = { version = "0.4" }
 
 # serde
 serde = { version = "1", features = ["derive"] }
@@ -58,12 +58,12 @@ tokio = { version = "1" }
 num_cpus = { version = "1" }
 
 [patch.crates-io]
-arrow = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-array = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-buffer = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-cast = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-ord = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-row = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-schema = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-arrow-select = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
-parquet = { git = "https://github.com/segmentio/arrow-rs", rev = "61880a24c7301c873f55809ad12a1fc13b48c242" }
+arrow = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-array = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-buffer = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-cast = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-ord = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-row = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-schema = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+arrow-select = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }
+parquet = { git = "https://github.com/segmentio/arrow-rs", branch = "parse_decimal" }

@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{collections::HashMap, ops::AddAssign};
 
+use bigdecimal::BigDecimal;
 use parquet::format::FileMetaData;
 use parquet::schema::types::{ColumnDescriptor, SchemaDescriptor};
 use parquet::{basic::LogicalType, errors::ParquetError};
@@ -9,7 +10,6 @@ use parquet::{
     file::{metadata::RowGroupMetaData, statistics::Statistics},
     format::TimeUnit,
 };
-use rust_decimal::Decimal;
 
 use super::*;
 use crate::kernel::Add;
@@ -124,7 +124,7 @@ enum StatsScalar {
     Float64(f64),
     Date(chrono::NaiveDate),
     Timestamp(chrono::NaiveDateTime),
-    Decimal(Decimal),
+    Decimal(BigDecimal),
     String(String),
     Bytes(Vec<u8>),
     Uuid(uuid::Uuid),
@@ -155,7 +155,7 @@ impl StatsScalar {
                 Ok(Self::Date(date))
             }
             (Statistics::Int32(v), Some(LogicalType::Decimal { scale, .. })) => {
-                let val = Decimal::new(get_stat!(v) as i64, *scale as u32);
+                let val = BigDecimal::new(get_stat!(v).into(), (*scale).into()).normalized();
                 Ok(Self::Decimal(val))
             }
             (Statistics::Int32(v), _) => Ok(Self::Int32(get_stat!(v))),
@@ -181,7 +181,7 @@ impl StatsScalar {
                 Ok(Self::Timestamp(timestamp))
             }
             (Statistics::Int64(v), Some(LogicalType::Decimal { scale, .. })) => {
-                let val = Decimal::new(get_stat!(v), *scale as u32);
+                let val = BigDecimal::new(get_stat!(v).into(), (*scale).into()).normalized();
                 Ok(Self::Decimal(val))
             }
             (Statistics::Int64(v), _) => Ok(Self::Int64(get_stat!(v))),
@@ -238,7 +238,7 @@ impl StatsScalar {
                     });
                 };
 
-                let val = Decimal::from_i128_with_scale(val, *scale as u32);
+                let val = BigDecimal::new(val.into(), (*scale).into()).normalized();
                 Ok(Self::Decimal(val))
             }
             (Statistics::FixedLenByteArray(v), Some(LogicalType::Uuid)) => {
