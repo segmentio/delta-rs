@@ -12,19 +12,19 @@ on:
 jobs:
   process:
     name: Process
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     permissions:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
       - name: Assign GitHub labels
         if: |
           github.event_name == 'pull_request_target' &&
             (github.event.action == 'opened' ||
              github.event.action == 'synchronize')
-        uses: actions/labeler@v4.0.2
+        uses: actions/labeler@5c7539237e04b714afd8ad9b4aed733815b9fab4  # v4.0.2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/workflows/dev_pr/labeler.yml
@@ -32,16 +32,16 @@ jobs:
 
   commitlint:
     name: PR title / description conforms to semantic-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610  # v3
         with:
           node-version: "18"
       - run: npm install -g @commitlint/cli @commitlint/config-conventional
       # Checkout to get the commitlint configuration.
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
       - run: >
           npx commitlint \
             --verbose <<< $COMMIT_MSG
@@ -52,7 +52,7 @@ jobs:
 
             ${{ github.event.pull_request.body }}
       - if: failure()
-        uses: actions/github-script@v6
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410  # v6
         with:
           script: |
             const message = `**ACTION NEEDED**

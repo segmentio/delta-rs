@@ -8,12 +8,12 @@ on:
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
       - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af  # v1
         with:
           profile: default
           toolchain: stable
@@ -33,16 +33,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
       - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af  # v1
         with:
           profile: default
           toolchain: stable
           override: true
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32  # v2
 
       - name: build and lint with clippy
         run: cargo clippy --features azure,datafusion,s3,gcs,glue --tests
@@ -73,23 +73,23 @@ jobs:
       CARGO_INCREMENTAL: 0
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
       - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af  # v1
         with:
           profile: default
           toolchain: "stable"
           override: true
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32  # v2
 
       - name: Run tests
         run: cargo test --verbose --features datafusion,azure
 
   integration_test:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     env:
       CARGO_INCREMENTAL: 0
       # Disable full debug symbol generation to speed up CI build and keep memory down
@@ -109,10 +109,10 @@ jobs:
       AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;QueueEndpoint=http://localhost:10001/devstoreaccount1;"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
       - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af  # v1
         with:
           profile: default
           toolchain: stable
@@ -132,7 +132,7 @@ jobs:
       #     echo "CLASSPATH=$CLASSPATH:`hadoop classpath --glob`" >> $GITHUB_ENV
       #     echo "LD_LIBRARY_PATH=$JAVA_HOME/lib/server" >> $GITHUB_ENV
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32  # v2
 
       - name: Start emulated services
         run: docker-compose up -d
@@ -146,22 +146,22 @@ jobs:
           cargo test -p deltalake --no-default-features --features integration_test,s3-native-tls,datafusion
 
   parquet2_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-large
     env:
       RUSTFLAGS: "-C debuginfo=line-tables-only"
       CARGO_INCREMENTAL: 0
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3
 
       - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af  # v1
         with:
           profile: default
           toolchain: stable
           override: true
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32  # v2
 
       - name: Run tests
         working-directory: crates/deltalake-core
